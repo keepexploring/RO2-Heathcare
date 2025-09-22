@@ -1,0 +1,8 @@
+panel==1.8.1
+pandas==2.3.2
+sqlalchemy==2.0.43
+psycopg2-binary==2.9.10
+hvplot==0.12.1
+holoviews==1.21.0
+bokeh==3.8.0
+param==2.2.1
