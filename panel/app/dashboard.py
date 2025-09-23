@@ -35,7 +35,7 @@ def view():
 
     # Create a bound plot that updates with new data
     @pn.depends(table.param.value)
-    def create_plot():
+    def create_plot(*args):
         current_df = table.value if hasattr(table.value, 'empty') else df
         if not current_df.empty:
             return current_df.hvplot.line(x="timestamp", y="value", title="Sensor Values")

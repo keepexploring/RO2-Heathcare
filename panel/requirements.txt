@@ -6,3 +6,4 @@ hvplot==0.12.1
 holoviews==1.21.0
 bokeh==3.8.0
 param==2.2.1
+watchfiles==0.24.0
