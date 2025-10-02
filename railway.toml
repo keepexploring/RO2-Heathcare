@@ -1,0 +1,20 @@
+[build]
+builder = "DOCKERFILE"
+
+[deploy]
+startCommand = "echo 'Railway deployment configured'"
+
+[[services]]
+name = "fastapi-backend"
+source = "fastapi/"
+
+[services.variables]
+PORT = "8000"
+
+[[services]]
+name = "panel-dashboard"
+source = "panel/"
+
+[services.variables]
+PORT = "5006"
+FASTAPI_URL = "${{fastapi-backend.RAILWAY_PUBLIC_DOMAIN}}"

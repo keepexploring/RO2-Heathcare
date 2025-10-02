@@ -26,6 +26,8 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/sensordb
       - MQTT_BROKER_URL=mosquitto
       - MQTT_BROKER_PORT=1883
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - 'USERS={"admin": "admin123", "user": "password"}'
     depends_on:
       mosquitto:
         condition: service_healthy

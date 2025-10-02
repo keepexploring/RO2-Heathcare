@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Text, ForeignKey, JSON
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from db import Base
+from app.db import Base
 
 class SensorData(Base):
     __tablename__ = "sensor_data"

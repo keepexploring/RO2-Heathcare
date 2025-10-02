@@ -23,6 +23,11 @@ def is_authenticated():
     """Check if user is authenticated"""
     return get_auth_token() is not None
 
+def handle_auth_error():
+    """Handle authentication errors by clearing token and triggering reload"""
+    set_auth_token(None)
+    pn.state.location.reload = True
+
 def login(username, password):
     """Login and get JWT token"""
     try:
@@ -82,6 +87,10 @@ def download_csv(start_date=None, end_date=None):
 
 def fetch_data(limit=50, hours=None, start_date=None, end_date=None):
     try:
+        if not is_authenticated():
+            print("⚠️ Not authenticated, cannot fetch data")
+            return pd.DataFrame()
+
         params = {}
 
         if hours:
@@ -93,7 +102,16 @@ def fetch_data(limit=50, hours=None, start_date=None, end_date=None):
             params["limit"] = limit
 
         url = f"{FASTAPI_URL}/data"
-        data = requests.get(url, params=params).json()
+        headers = {"Authorization": f"Bearer {get_auth_token()}"}
+        response = requests.get(url, params=params, headers=headers)
+
+        if response.status_code == 401:
+            print("⚠️ Authentication failed, redirecting to login")
+            handle_auth_error()
+            return pd.DataFrame()
+
+        response.raise_for_status()
+        data = response.json()
         df = pd.DataFrame(data)
 
         if not df.empty:
@@ -120,8 +138,19 @@ def fetch_data(limit=50, hours=None, start_date=None, end_date=None):
 
 def fetch_latest():
     try:
+        if not is_authenticated():
+            print("⚠️ Not authenticated, cannot fetch latest data")
+            return None
+
         url = f"{FASTAPI_URL}/latest"
-        response = requests.get(url)
+        headers = {"Authorization": f"Bearer {get_auth_token()}"}
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 401:
+            print("⚠️ Authentication failed, redirecting to login")
+            handle_auth_error()
+            return None
+
         return response.json() if response.status_code == 200 else None
     except Exception as e:
         print(f"⚠️ Error fetching latest: {e}")
@@ -129,8 +158,19 @@ def fetch_latest():
 
 def fetch_stats():
     try:
+        if not is_authenticated():
+            print("⚠️ Not authenticated, cannot fetch stats")
+            return {}
+
         url = f"{FASTAPI_URL}/stats"
-        response = requests.get(url)
+        headers = {"Authorization": f"Bearer {get_auth_token()}"}
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 401:
+            print("⚠️ Authentication failed, redirecting to login")
+            handle_auth_error()
+            return {}
+
         return response.json() if response.status_code == 200 else {}
     except Exception as e:
         print(f"⚠️ Error fetching stats: {e}")
@@ -138,8 +178,19 @@ def fetch_stats():
 
 def fetch_timeline(hours=24):
     try:
+        if not is_authenticated():
+            print("⚠️ Not authenticated, cannot fetch timeline")
+            return {}
+
         url = f"{FASTAPI_URL}/timeline?hours={hours}"
-        response = requests.get(url)
+        headers = {"Authorization": f"Bearer {get_auth_token()}"}
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 401:
+            print("⚠️ Authentication failed, redirecting to login")
+            handle_auth_error()
+            return {}
+
         return response.json() if response.status_code == 200 else {}
     except Exception as e:
         print(f"⚠️ Error fetching timeline: {e}")
@@ -683,8 +734,8 @@ def create_dashboard():
     def update_content():
         """Update the main content based on authentication state"""
         if is_authenticated():
-            # Show the dashboard
-            main_container.objects = [create_main_dashboard()]
+            # Show the dashboard with access to update_content function
+            main_container.objects = [create_main_dashboard(update_content)]
         else:
             # Show the login screen
             main_container.objects = [create_login_screen()]
@@ -695,7 +746,7 @@ def create_dashboard():
     # Return the reactive container
     return main_container
 
-def create_main_dashboard():
+def create_main_dashboard(update_content_callback=None):
     """Create the main dashboard content (previously the view function)"""
     df = fetch_data()
     latest = fetch_latest()
@@ -1156,9 +1207,12 @@ def create_main_dashboard():
 
     def handle_logout(event):
         set_auth_token(None)
-        # Instead of page reload, update the dashboard content
-        main_container = event.obj.parent.parent  # Navigate up to the main container
-        main_container.objects = [create_login_screen()]
+        # Use the callback to update the dashboard content
+        if update_content_callback:
+            update_content_callback()
+        else:
+            # Fallback to page reload if callback not available
+            pn.state.location.reload = True
 
     logout_button.on_click(handle_logout)
 

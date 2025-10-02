@@ -10,9 +10,9 @@ import os
 import json
 import jwt
 from datetime import datetime, timedelta, timezone
-from models import SensorData, RawAccelerometerData, InferredAnalytics
-from db import Base, engine, SessionLocal
-from mqtt_handler import start_mqtt
+from app.models import SensorData, RawAccelerometerData, InferredAnalytics
+from app.db import Base, engine, SessionLocal
+from app.mqtt_handler import start_mqtt
 from pydantic import BaseModel
 
 app = FastAPI(title="Sensor Backend")
@@ -147,6 +147,7 @@ def get_sensor_data(
     limit: int = 100,
     oxygen_concentrator_id: str = None,
     system_in_use: bool = None,
+    current_user: str = Depends(verify_token),
     db: Session = Depends(get_db)
 ):
     """
@@ -186,7 +187,11 @@ def get_sensor_data(
 
 # Statistics endpoint
 @app.get("/stats")
-def get_operational_stats(oxygen_concentrator_id: str = None, db: Session = Depends(get_db)):
+def get_operational_stats(
+    oxygen_concentrator_id: str = None,
+    current_user: str = Depends(verify_token),
+    db: Session = Depends(get_db)
+):
     """
     Returns operational statistics for the oxygen concentrator.
     Considers device operational if it receives data at least every 1 minute.
@@ -248,7 +253,10 @@ def get_operational_stats(oxygen_concentrator_id: str = None, db: Session = Depe
 
 # Endpoint to get unique oxygen concentrator IDs for filtering
 @app.get("/concentrators")
-def get_concentrator_ids(db: Session = Depends(get_db)):
+def get_concentrator_ids(
+    current_user: str = Depends(verify_token),
+    db: Session = Depends(get_db)
+):
     """Returns list of unique oxygen concentrator IDs"""
     ids = db.query(SensorData.oxygen_concentrator_id).distinct().filter(
         SensorData.oxygen_concentrator_id.isnot(None)
@@ -257,7 +265,11 @@ def get_concentrator_ids(db: Session = Depends(get_db)):
 
 # Latest reading endpoint
 @app.get("/latest")
-def get_latest_reading(oxygen_concentrator_id: str = None, db: Session = Depends(get_db)):
+def get_latest_reading(
+    oxygen_concentrator_id: str = None,
+    current_user: str = Depends(verify_token),
+    db: Session = Depends(get_db)
+):
     """Returns the most recent reading"""
     query = db.query(SensorData).order_by(SensorData.timestamp.desc())
 
@@ -286,7 +298,12 @@ def get_latest_reading(oxygen_concentrator_id: str = None, db: Session = Depends
 
 # Timeline data endpoint for usage visualization
 @app.get("/timeline")
-def get_timeline_data(hours: int = 24, oxygen_concentrator_id: str = None, db: Session = Depends(get_db)):
+def get_timeline_data(
+    hours: int = 24,
+    oxygen_concentrator_id: str = None,
+    current_user: str = Depends(verify_token),
+    db: Session = Depends(get_db)
+):
     """
     Returns time-bucketed data for usage visualization.
     Each bucket represents operational status in time periods.
@@ -336,7 +353,11 @@ def get_timeline_data(hours: int = 24, oxygen_concentrator_id: str = None, db: S
 
 # Raw accelerometer data endpoints
 @app.post("/raw-accelerometer")
-def create_raw_accelerometer_data(data: RawAccelerometerDataCreate, db: Session = Depends(get_db)):
+def create_raw_accelerometer_data(
+    data: RawAccelerometerDataCreate,
+    current_user: str = Depends(verify_token),
+    db: Session = Depends(get_db)
+):
     """Create raw accelerometer data entry"""
     db_data = RawAccelerometerData(**data.dict())
     db.add(db_data)
@@ -348,6 +369,7 @@ def create_raw_accelerometer_data(data: RawAccelerometerDataCreate, db: Session 
 def get_raw_accelerometer_data(
     limit: int = 1000,
     oxygen_concentrator_id: str = None,
+    current_user: str = Depends(verify_token),
     db: Session = Depends(get_db)
 ):
     """Get raw accelerometer data"""
@@ -377,7 +399,11 @@ def get_raw_accelerometer_data(
 
 # Inferred analytics endpoints
 @app.post("/analytics")
-def create_analytics(data: InferredAnalyticsCreate, db: Session = Depends(get_db)):
+def create_analytics(
+    data: InferredAnalyticsCreate,
+    current_user: str = Depends(verify_token),
+    db: Session = Depends(get_db)
+):
     """Create inferred analytics entry"""
     db_data = InferredAnalytics(**data.dict())
     db.add(db_data)
@@ -389,6 +415,7 @@ def create_analytics(data: InferredAnalyticsCreate, db: Session = Depends(get_db
 def get_analytics(
     limit: int = 100,
     oxygen_concentrator_id: str = None,
+    current_user: str = Depends(verify_token),
     db: Session = Depends(get_db)
 ):
     """Get inferred analytics data"""
@@ -422,7 +449,11 @@ def get_analytics(
     ]
 
 @app.get("/analytics/latest")
-def get_latest_analytics(oxygen_concentrator_id: str = None, db: Session = Depends(get_db)):
+def get_latest_analytics(
+    oxygen_concentrator_id: str = None,
+    current_user: str = Depends(verify_token),
+    db: Session = Depends(get_db)
+):
     """Get the latest analytics entry"""
     query = db.query(InferredAnalytics).order_by(InferredAnalytics.timestamp.desc())
 
@@ -457,6 +488,7 @@ def get_latest_analytics(oxygen_concentrator_id: str = None, db: Session = Depen
 def get_vibration_frequency_data(
     hours: int = 24,
     oxygen_concentrator_id: str = None,
+    current_user: str = Depends(verify_token),
     db: Session = Depends(get_db)
 ):
     """Get vibration frequency data over time"""
