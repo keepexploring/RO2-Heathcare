@@ -217,7 +217,13 @@ def get_operational_stats(
         readings = query.order_by(SensorData.timestamp).all()
 
         if not readings:
-            stats[period_name] = {"operational_minutes": 0, "total_minutes": int((now - start_time).total_seconds() / 60)}
+            total_minutes = int((now - start_time).total_seconds() / 60)
+            stats[period_name] = {
+                "operational_minutes": 0,
+                "operational_hours": 0.0,
+                "total_minutes": total_minutes,
+                "total_hours": round(total_minutes / 60, 1)
+            }
             continue
 
         # Calculate operational minutes (when we get data at least every 1 minute)

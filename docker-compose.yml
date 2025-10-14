@@ -23,7 +23,6 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/sensordb
       - MQTT_BROKER_URL=mosquitto
       - MQTT_BROKER_PORT=1883
       - JWT_SECRET=your-super-secret-jwt-key-change-in-production
@@ -31,8 +30,6 @@ services:
     depends_on:
       mosquitto:
         condition: service_healthy
-      postgres:
-        condition: service_started
     env_file:
       - .env
 
@@ -42,29 +39,27 @@ services:
     ports:
       - "5006:5006"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/sensordb
       - FASTAPI_URL=http://fastapi:8000
     depends_on:
-      - postgres
       - fastapi
     env_file:
       - .env
 
-  postgres:
-    image: postgres:15
-    container_name: postgres
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=sensordb
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    env_file:
-      - .env
+  # postgres:
+  #   image: postgres:15
+  #   container_name: postgres
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=sensordb
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+  #   env_file:
+  #     - .env
 
 
-volumes:
-  pgdata:
+# volumes:
+#   pgdata:
 
