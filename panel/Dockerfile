@@ -22,5 +22,5 @@ EXPOSE 5006
 HEALTHCHECK --interval=30s --timeout=30s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:5006 || exit 1
 
-# Run the Panel application
-CMD ["panel", "serve", "app/dashboard.py", "--address", "0.0.0.0", "--port", "5006", "--allow-websocket-origin=*"]
+# Run the Panel application (Railway sets PORT env var)
+CMD panel serve app/dashboard.py --address 0.0.0.0 --port ${PORT:-5006} --allow-websocket-origin=*

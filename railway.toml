@@ -1,13 +1,10 @@
 # Railway configuration for multi-service deployment
+# Note: Deploy mosquitto separately or use external MQTT broker (HiveMQ Cloud)
 
 [[services]]
 name = "fastapi"
-source = "fastapi/"
+source = "fastapi"
 
 [[services]]
 name = "panel"
-source = "panel/"
-
-[[services]]
-name = "mosquitto"
-source = "mosquitto/"
+source = "panel"
