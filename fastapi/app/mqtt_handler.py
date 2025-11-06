@@ -2,50 +2,15 @@ import asyncio
 import os
 import paho.mqtt.client as mqtt
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, Column, Integer, Float, String, DateTime, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql import func
+from app.db import engine
+from app.models import SensorData
 
 # Environment variables
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@postgres:5432/sensordb")
 MQTT_BROKER_URL = os.getenv("MQTT_BROKER_URL", "mosquitto")
 MQTT_BROKER_PORT = int(os.getenv("MQTT_BROKER_PORT", 1883))
 
-# SQLAlchemy setup
-engine = create_engine(DATABASE_URL)
+# SQLAlchemy session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-# ORM model with comprehensive sensor data
-class SensorData(Base):
-    __tablename__ = "sensor_data"
-
-    id = Column(Integer, primary_key=True, index=True)
-    topic = Column(String, index=True)
-
-    # Legacy field for backward compatibility
-    value = Column(Float)
-
-    # Comprehensive sensor data fields
-    temperature = Column(Float)
-    humidity = Column(Float)
-    system_in_use = Column(Boolean, default=False)
-    oxygen_level = Column(Float)
-    vibration_frequency = Column(Float)
-
-    # Location data
-    latitude = Column(Float)
-    longitude = Column(Float)
-    what3words_location = Column(String)
-
-    # Device identification
-    oxygen_concentrator_id = Column(String, index=True)
-
-    # Timestamp
-    timestamp = Column(DateTime(timezone=True), server_default=func.now(), index=True)
-
-# Create table if not exists
-Base.metadata.create_all(bind=engine)
 
 # MQTT callbacks
 def on_connect(client, userdata, flags, rc):
