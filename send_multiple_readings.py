@@ -8,7 +8,7 @@ import json
 import time
 import random
 
-MQTT_BROKER = "159.65.48.40"
+MQTT_BROKER = "mqtt.ro2.co.uk"  # Using secure domain!
 MQTT_PORT = 1883
 MQTT_TOPIC = "sensors/comprehensive"
 
@@ -105,4 +105,5 @@ for i, reading in enumerate(readings, 1):
 client.disconnect()
 
 print("\n✅ All readings sent!")
-print(f"👉 Check dashboard: http://{MQTT_BROKER}:5006")
+print(f"👉 Check secure dashboard: https://monitor.ro2.co.uk")
+print(f"👉 Check secure API: https://api.ro2.co.uk/docs")

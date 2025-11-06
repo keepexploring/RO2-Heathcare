@@ -9,7 +9,7 @@ import json
 import sys
 
 # Configuration
-MQTT_BROKER = "159.65.48.40"
+MQTT_BROKER = "mqtt.ro2.co.uk"  # Using secure domain!
 MQTT_PORT = 1883
 MQTT_TOPIC = "sensors/comprehensive"  # Match publish_test.py topic
 
@@ -66,7 +66,7 @@ try:
     client.disconnect()
 
     print("\n🎉 Test completed successfully!")
-    print(f"👉 Check your dashboard at: http://{MQTT_BROKER}:5006")
+    print(f"👉 Check your secure dashboard at: https://monitor.ro2.co.uk")
 
 except Exception as e:
     print(f"❌ Error: {e}")
